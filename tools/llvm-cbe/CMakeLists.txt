@@ -30,8 +30,16 @@ if(USE_SYSTEM_LLVM)
   add_executable(llvm-cbe
     llvm-cbe.cpp
     )
-  llvm_map_components_to_libnames(llvm_libs
-    ${LLVM_LINK_COMPONENTS}
-    )
-  target_link_libraries(llvm-cbe ${llvm_libs})
+  if(WIN32)
+    llvm_map_components_to_libnames(llvm_libs
+      ${LLVM_LINK_COMPONENTS}
+      )
+    target_link_libraries(llvm-cbe ${llvm_libs})
+  else()
+    llvm_map_components_to_libnames(llvm_libs
+      CBackendCodeGen
+      CBackendInfo
+      )
+    target_link_libraries(llvm-cbe LLVM ${llvm_libs})
+  endif()
 endif()
