@@ -1,26 +1,25 @@
 # Support plugins.
 set(LLVM_NO_DEAD_STRIP 1)
 
+set(LLVM_LINK_COMPONENTS
+  ${LLVM_TARGETS_TO_BUILD}
+  Analysis
+  AsmParser
+  AsmPrinter
+  BitReader
+  CBackendCodeGen
+  CBackendInfo
+  CodeGen
+  Core
+  IRReader
+  MC
+  ScalarOpts
+  SelectionDAG
+  Support
+  Target
+  )
+
 if (NOT USE_SYSTEM_LLVM)
-  set(LLVM_LINK_COMPONENTS
-    ${LLVM_TARGETS_TO_BUILD}
-    Analysis
-    AsmParser
-    AsmPrinter
-    BitReader
-    CBackendCodeGen
-    CBackendInfo
-    CodeGen
-    Core
-    IRReader
-    MC
-    ScalarOpts
-    SelectionDAG
-    Support
-    Target
-    )
-
-
   add_llvm_tool(llvm-cbe
     llvm-cbe.cpp
     )
@@ -32,8 +31,7 @@ if(USE_SYSTEM_LLVM)
     llvm-cbe.cpp
     )
   llvm_map_components_to_libnames(llvm_libs
-    CBackendCodeGen
-    CBackendInfo
+    ${LLVM_LINK_COMPONENTS}
     )
-  target_link_libraries(llvm-cbe LLVM ${llvm_libs})
+  target_link_libraries(llvm-cbe ${llvm_libs})
 endif()

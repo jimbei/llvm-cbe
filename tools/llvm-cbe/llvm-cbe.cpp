@@ -16,7 +16,9 @@
 #include "llvm/ADT/Triple.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
-#if LLVM_VERSION_MAJOR >= 7
+#if LLVM_VERSION_MAJOR >= 11
+#include "llvm/CodeGen/CommandFlags.h"
+#elif LLVM_VERSION_MAJOR >= 7
 #include "llvm/CodeGen/CommandFlags.inc"
 #else
 #include "llvm/CodeGen/CommandFlags.def"
@@ -85,6 +87,28 @@ cl::opt<bool> NoVerify("disable-verify", cl::Hidden,
                        cl::desc("Do not verify input module"));
 
 static int compileModule(char **, LLVMContext &);
+
+#if LLVM_VERSION_MAJOR >= 11
+static codegen::RegisterCodeGenFlags CGF;
+static mc::RegisterMCTargetOptionsFlags MOF;
+#define DontPlaceZerosInBSS                     codegen::getDontPlaceZerosInBSS()
+#define EnableUnsafeFPMath                      codegen::getEnableUnsafeFPMath()
+#define EnableNoInfsFPMath                      codegen::getEnableNoInfsFPMath()
+#define EnableNoNaNsFPMath                      codegen::getEnableNoNaNsFPMath()
+#define EnableHonorSignDependentRoundingFPMath  codegen::getEnableHonorSignDependentRoundingFPMath()
+#define EnableGuaranteedTailCallOpt             codegen::getEnableGuaranteedTailCallOpt()
+#define FileType                                codegen::getFileType()
+#define FloatABIForCalls                        codegen::getFloatABIForCalls()
+#define FuseFPOps                               codegen::getFuseFPOps()
+#define getRelocModel                           codegen::getRelocModel
+#define getCodeModel                            codegen::getCodeModel
+#define MCPU                                    codegen::getMCPU()
+#define MAttrs                                  codegen::getMAttrs()
+#define MArch                                   codegen::getMArch()
+#define OverrideStackAlignment                  codegen::getOverrideStackAlignment()
+#define RelaxAll                                mc::getRelaxAll()
+#endif
+
 
 // GetFileNameRoot - Helper function to get the basename of a filename.
 static inline std::string GetFileNameRoot(const std::string &InputFilename) {
