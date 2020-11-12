@@ -38,6 +38,10 @@
 
 #include "IDMap.h"
 
+#if LLVM_VERSION_MAJOR >= 11
+#define VectorType FixedVectorType
+#endif
+
 namespace llvm_cbe {
 
 using namespace llvm;

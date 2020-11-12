@@ -50,7 +50,8 @@
 #endif
 
 #if LLVM_VERSION_MAJOR >= 11
-#define getCalledValue getCalledOperand
+#define getCalledValue  getCalledOperand
+#define VectorTyID      FixedVectorTyID
 #endif
 
 #if defined(_MSC_VER)
@@ -244,13 +245,7 @@ raw_ostream &CWriter::printTypeString(raw_ostream &Out, Type *Ty,
   case Type::X86_MMXTyID:
     return Out << (isSigned ? "i32y2" : "u32y2");
 
-#if LLVM_VERSION_MAJOR >= 11
-  case Type::FixedVectorTyID:
-  case Type::ScalableVectorTyID:
-#else
-  case Type::VectorTyID:
-#endif
-  {
+  case Type::VectorTyID: {
     TypedefDeclTypes.insert(Ty);
     VectorType *VTy = cast<VectorType>(Ty);
     cwriter_assert(VTy->getNumElements() != 0);
@@ -526,13 +521,7 @@ CWriter::printTypeName(raw_ostream &Out, Type *Ty, bool isSigned,
     return Out << getArrayName(cast<ArrayType>(Ty));
   }
 
-#if LLVM_VERSION_MAJOR >= 11
-  case Type::FixedVectorTyID:
-  case Type::ScalableVectorTyID:
-#else
-  case Type::VectorTyID:
-#endif
-  {
+  case Type::VectorTyID: {
     TypedefDeclTypes.insert(Ty);
     return Out << getVectorName(cast<VectorType>(Ty), true);
   }
@@ -1372,13 +1361,7 @@ void CWriter::printConstant(Constant *CPV, enum OperandContext Context) {
     break;
   }
 
-#if LLVM_VERSION_MAJOR >= 11
-  case Type::FixedVectorTyID:
-  case Type::ScalableVectorTyID:
-#else
-  case Type::VectorTyID:
-#endif
-  {
+  case Type::VectorTyID: {
     VectorType *VT = cast<VectorType>(CPV->getType());
     cwriter_assert(VT->getNumElements() != 0 && !isEmptyType(VT));
     if (Context != ContextStatic) {
@@ -5291,7 +5274,11 @@ void CWriter::visitExtractElementInst(ExtractElementInst &I) {
 void CWriter::visitShuffleVectorInst(ShuffleVectorInst &SVI) {
   CurInstr = &SVI;
 
-  VectorType *VT = SVI.getType();
+  VectorType *VT = dyn_cast<VectorType>(SVI.getType());
+  if (!VT) {
+    errorWithMessage("Scalable vectors not yet supported!");
+  }
+
   Type *EltTy = VT->getElementType();
   VectorType *InputVT = cast<VectorType>(SVI.getOperand(0)->getType());
   cwriter_assert(!isEmptyType(VT));
